@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AutoVerse AI — Piattaforma Automotive Intelligente</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bordeaux: oklch(32% 0.12 15);
+  --bordeaux-deep: oklch(22% 0.1 15);
+  --bordeaux-light: oklch(42% 0.14 15);
+  --bordeaux-glow: oklch(38% 0.12 15 / 0.25);
+  --cream: oklch(93% 0.02 85);
+  --cream-dim: oklch(85% 0.02 85);
+  --cream-muted: oklch(72% 0.015 85);
+  --gold: oklch(75% 0.14 80);
+  --gold-bright: oklch(82% 0.15 80);
+  --gold-dim: oklch(60% 0.12 75);
+  --gold-chrome: oklch(70% 0.1 80);
+  --gold-glow: oklch(75% 0.14 80 / 0.2);
+  --bg-base: oklch(8% 0.02 15);
+  --bg-surface: oklch(12% 0.025 15);
+  --bg-elevated: oklch(16% 0.03 15);
+  --bg-hover: oklch(20% 0.035 15);
+  --text-primary: var(--cream);
+  --text-secondary: var(--cream-dim);
+  --text-muted: var(--cream-muted);
+  --accent: var(--gold);
+  --accent-bright: var(--gold-bright);
+  --accent-dim: var(--gold-dim);
+  --accent-glow: var(--gold-glow);
+  --border: oklch(22% 0.04 15);
+  --border-subtle: oklch(18% 0.03 15);
+  --success: oklch(68% 0.14 145);
+  --error: oklch(60% 0.2 25);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+html { font-size: 16px; }
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  line-height: 1.6;
+  height: 100vh;
+  overflow: hidden;
+  font-optical-sizing: auto;
+}
+
+h1, h2, h3, h4, h5 {
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  text-wrap: balance;
+  line-height: 1.2;
+}
+
+/* RADIANT FLOATING MENU */
+.radial-menu {
+  position: fixed;
+  z-index: 1000;
+  top: 50%;
+  left: 20px;
+  transform: translateY(-50%);
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+.radial-menu.dragging { cursor: grabbing; }
+.radial-menu-inner {
+  position: relative;
+  width: 54px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 7px;
+  background: linear-gradient(180deg, oklch(18% 0.04 15) 0%, oklch(12% 0.03 15) 100%);
+  border: 1px solid var(--border);
+  border-radius: 27px;
+  box-shadow: 0 4px 24px oklch(8% 0.02 15 / 0.6), 0 0 0 1px oklch(25% 0.04 80 / 0.1), inset 0 1px 0 oklch(30% 0.04 15 / 0.3);
+}
+.radial-menu-inner::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 27px;
+  background: linear-gradient(180deg, oklch(75% 0.14 80 / 0.08) 0%, transparent 40%);
+  pointer-events: none;
+}
+.menu-logo {
+  width: 34px; height: 34px;
+  margin-bottom: 6px;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+.menu-logo::after {
+  content: '';
+  position: absolute; inset: -4px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--gold-glow) 0%, transparent 70%);
+  animation: logoGlow 3s ease-in-out infinite;
+}
+@keyframes logoGlow {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+.menu-logo svg { width: 20px; height: 20px; position: relative; z-index: 1; }
+.nav-item {
+  width: 38px; height: 38px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 11px; cursor: pointer;
+  transition: all 200ms var(--ease-out-expo);
+  position: relative; color: var(--cream-muted);
+}
+.nav-item:hover { background: var(--bg-hover); color: var(--cream); transform: scale(1.08); }
+.nav-item.active {
+  background: var(--bordeaux); color: var(--gold);
+  box-shadow: 0 0 12px var(--bordeaux-glow), 0 2px 8px oklch(32% 0.12 15 / 0.4);
+}
+.nav-item.active::after {
+  content: ''; position: absolute; inset: -2px;
+  border-radius: 13px; border: 1px solid var(--gold-dim); opacity: 0.4;
+}
+.nav-item i { width: 17px; height: 17px; }
+.nav-tooltip {
+  position: absolute; left: 50px;
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  padding: 5px 10px; border-radius: 7px;
+  font-size: 0.7rem; font-weight: 500; white-space: nowrap;
+  opacity: 0; pointer-events: none;
+  transition: opacity 150ms, transform 150ms;
+  transform: translateX(-4px); z-index: 1001; color: var(--cream);
+}
+.nav-item:hover .nav-tooltip { opacity: 1; transform: translateX(0); }
+.menu-divider { width: 22px; height: 1px; background: var(--border); margin: 5px 0; }
+.drag-handle {
+  width: 18px; height: 4px; display: flex; gap: 2px;
+  justify-content: center; align-items: center;
+  margin-bottom: 4px; cursor: grab; opacity: 0.4;
+}
+.drag-handle:hover { opacity: 0.8; }
+.drag-handle span { width: 3px; height: 3px; border-radius: 50%; background: var(--cream-muted); }
+
+/* MAIN */
+.main {
+  width: 100%; height: 100vh;
+  overflow-y: auto; overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--bordeaux-light) transparent;
+  padding-left: 88px;
+}
+.section {
+  display: none; min-height: 100vh; padding: 36px 44px;
+  animation: fadeIn 400ms var(--ease-out-expo);
+}
+.section.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* DASHBOARD */
+.dashboard-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 40px; flex-wrap: wrap; gap: 16px; }
+.dashboard-header h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.03em; color: var(--cream); }
+.dashboard-header p { color: var(--text-secondary); margin-top: 4px; font-size: 0.85rem; }
+.status-badge {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 7px 14px; background: oklch(68% 0.14 145 / 0.08);
+  border: 1px solid oklch(68% 0.14 145 / 0.2); border-radius: 20px;
+  font-size: 0.72rem; font-weight: 500; color: var(--success);
+}
+.status-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--success); animation: pulse 2s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+.dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-bottom: 40px; }
+.dash-card {
+  background: var(--bg-surface); border: 1px solid var(--border-subtle);
+  border-radius: 14px; padding: 22px; position: relative; overflow: hidden;
+  transition: border-color 250ms, transform 250ms var(--ease-out-expo);
+}
+.dash-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--bordeaux) 0%, var(--gold-dim) 100%); opacity: 0; transition: opacity 250ms; }
+.dash-card:hover { border-color: var(--border); transform: translateY(-2px); }
+.dash-card:hover::before { opacity: 1; }
+.dash-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.dash-card-header h3 { font-size: 0.7rem; font-weight: 500; color: var(--text-muted); letter-spacing: 0.07em; text-transform: uppercase; }
+.dash-card-icon { width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; border-radius: 9px; background: var(--bordeaux-glow); }
+.dash-card-icon i { width: 16px; height: 16px; color: var(--gold); }
+.dash-card-value { font-family: 'Space Grotesk', system-ui; font-size: 2rem; font-weight: 700; margin-bottom: 3px; font-variant-numeric: tabular-nums; color: var(--cream); }
+.dash-card-sub { font-size: 0.75rem; color: var(--text-muted); }
+
+/* BLOG CATALOGUE */
+.blog-header { margin-bottom: 28px; }
+.blog-header h1 { font-size: 1.6rem; font-weight: 700; color: var(--cream); margin-bottom: 4px; }
+.blog-header p { color: var(--text-muted); font-size: 0.85rem; }
+.blog-filters { display: flex; gap: 7px; margin: 20px 0 28px; flex-wrap: wrap; }
+.filter-chip {
+  padding: 7px 15px; border-radius: 18px; font-size: 0.75rem; font-weight: 500;
+  cursor: pointer; border: 1px solid var(--border); background: transparent;
+  color: var(--text-muted); transition: all 200ms; font-family: inherit;
+}
+.filter-chip:hover { border-color: var(--cream-muted); color: var(--cream); }
+.filter-chip.active { background: var(--bordeaux); border-color: var(--bordeaux-light); color: var(--gold); }
+
+.brand-section { margin-bottom: 48px; }
+.brand-section-header {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 20px; padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.brand-logo-badge {
+  width: 44px; height: 44px; border-radius: 12px;
+  background: var(--bordeaux-glow); border: 1px solid var(--gold-glow);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Space Grotesk'; font-weight: 700; font-size: 1rem; color: var(--gold);
+}
+.brand-section-header h2 { font-size: 1.2rem; font-weight: 700; color: var(--cream); }
+.brand-section-header span { font-size: 0.75rem; color: var(--text-muted); }
+
+.car-catalog-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 18px; }
+
+.car-catalog-card {
+  background: var(--bg-surface); border: 1px solid var(--border-subtle);
+  border-radius: 16px; overflow: hidden;
+  transition: transform 300ms var(--ease-out-expo), border-color 250ms, box-shadow 300ms;
+}
+.car-catalog-card:hover { transform: translateY(-3px); border-color: var(--bordeaux-light); box-shadow: 0 12px 32px oklch(8% 0.02 15 / 0.5); }
+
+.car-illustration {
+  height: 200px; padding: 20px;
+  background: linear-gradient(145deg, var(--bordeaux-deep) 0%, oklch(10% 0.015 15) 100%);
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+.car-illustration svg {
+  width: 92%; height: 85%;
+  stroke: var(--gold-chrome); stroke-width: 1; fill: none;
+  filter: drop-shadow(0 0 8px oklch(75% 0.14 80 / 0.2));
+}
+.car-illustration .car-badge {
+  position: absolute; top: 12px; right: 12px;
+  padding: 4px 10px; background: oklch(10% 0.02 15 / 0.85);
+  border: 1px solid var(--gold-glow); border-radius: 8px;
+  font-size: 0.65rem; font-weight: 600; color: var(--gold);
+  letter-spacing: 0.05em; backdrop-filter: blur(6px);
+}
+.car-illustration .car-type-badge {
+  position: absolute; top: 12px; left: 12px;
+  padding: 4px 10px; background: var(--bordeaux);
+  border: 1px solid var(--bordeaux-light); border-radius: 8px;
+  font-size: 0.65rem; font-weight: 600; color: var(--cream);
+  letter-spacing: 0.03em;
+}
+
+.car-catalog-content { padding: 20px; }
+.car-catalog-content h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 6px; color: var(--cream); }
+.car-catalog-content .car-subtitle { font-size: 0.78rem; color: var(--gold-dim); margin-bottom: 10px; font-weight: 500; }
+.car-catalog-content .car-desc { font-size: 0.8rem; color: var(--text-muted); line-height: 1.55; margin-bottom: 14px; }
+
+.specs-mini-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
+.spec-mini {
+  padding: 8px 10px; background: var(--bg-base);
+  border: 1px solid var(--border-subtle); border-radius: 8px; text-align: center;
+}
+.spec-mini label { font-size: 0.62rem; color: var(--text-muted); display: block; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
+.spec-mini span { font-family: 'Space Grotesk'; font-size: 0.82rem; font-weight: 600; color: var(--cream); font-variant-numeric: tabular-nums; }
+
+.car-catalog-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-top: 12px; border-top: 1px solid var(--border-subtle);
+}
+.car-price { font-family: 'Space Grotesk'; font-size: 1rem; font-weight: 700; color: var(--gold); }
+.car-year { font-size: 0.72rem; color: var(--text-muted); }
+
+/* 3D STUDIO */
+.studio-container { display: grid; grid-template-columns: 1fr 300px; gap: 20px; height: calc(100vh - 72px); }
+.studio-viewport { background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 18px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+.viewport-3d { width: 100%; height: 100%; perspective: 1200px; display: flex; align-items: center; justify-content: center; }
+.car-3d-container { width: 480px; height: 280px; transform-style: preserve-3d; animation: rotate3d 20s linear infinite; }
+@keyframes rotate3d { from { transform: rotateY(0deg); } to { transform: rotateY(360deg); } }
+.car-3d-container.paused { animation-play-state: paused; }
+.car-wireframe { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+.car-wireframe svg { width: 100%; height: 100%; stroke: var(--gold); stroke-width: 0.8; fill: none; filter: drop-shadow(0 0 14px oklch(75% 0.14 80 / 0.25)); }
+.viewport-controls { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); display: flex; gap: 5px; background: oklch(10% 0.02 15 / 0.9); border: 1px solid var(--border); padding: 7px 10px; border-radius: 12px; backdrop-filter: blur(10px); }
+.viewport-btn { width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; border-radius: 8px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; transition: all 150ms; }
+.viewport-btn:hover { background: var(--bg-hover); color: var(--cream); }
+.viewport-btn.active { background: var(--bordeaux); color: var(--gold); }
+.viewport-btn i { width: 16px; height: 16px; }
+.viewport-info { position: absolute; top: 16px; left: 20px; font-size: 0.7rem; color: var(--text-muted); line-height: 1.8; }
+.viewport-info .highlight { color: var(--gold); font-weight: 600; font-size: 0.78rem; }
+.studio-panel { display: flex; flex-direction: column; gap: 12px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--bordeaux-light) transparent; }
+.panel-section { background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 16px; }
+.panel-section h3 { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gold-dim); margin-bottom: 12px; }
+.model-option { padding: 10px 12px; background: var(--bg-base); border: 1px solid var(--border-subtle); border-radius: 9px; cursor: pointer; transition: all 200ms; display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.model-option:hover { border-color: var(--border); }
+.model-option.selected { border-color: var(--gold-dim); background: var(--gold-glow); }
+.model-option-name { font-size: 0.8rem; font-weight: 500; color: var(--cream); }
+.model-option-year { font-size: 0.7rem; color: var(--text-muted); }
+.specs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.spec-item { padding: 9px 10px; background: var(--bg-base); border-radius: 7px; border: 1px solid var(--border-subtle); }
+.spec-item label { font-size: 0.65rem; color: var(--text-muted); display: block; margin-bottom: 1px; }
+.spec-item span { font-family: 'Space Grotesk'; font-size: 0.85rem; font-weight: 600; color: var(--cream); font-variant-numeric: tabular-nums; }
+
+/* SUPPORT */
+.support-layout { display: grid; grid-template-columns: 1fr 280px; gap: 20px; height: calc(100vh - 72px); }
+.chat-container { background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 18px; display: flex; flex-direction: column; overflow: hidden; }
+.chat-header { padding: 16px 20px; border-bottom: 1px solid var(--border-subtle); display: flex; align-items: center; gap: 10px; }
+.chat-avatar { width: 36px; height: 36px; border-radius: 9px; background: var(--bordeaux); border: 1px solid var(--gold-dim); display: flex; align-items: center; justify-content: center; }
+.chat-avatar i { width: 17px; height: 17px; color: var(--gold); }
+.chat-header-info h3 { font-size: 0.85rem; font-weight: 600; color: var(--cream); }
+.chat-header-info p { font-size: 0.7rem; color: var(--text-muted); }
+.chat-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; scrollbar-width: thin; scrollbar-color: var(--bordeaux-light) transparent; }
+.message { max-width: 80%; padding: 11px 15px; border-radius: 13px; font-size: 0.82rem; line-height: 1.5; }
+.message.ai { align-self: flex-start; background: var(--bg-elevated); border: 1px solid var(--border-subtle); color: var(--cream-dim); }
+.message.user { align-self: flex-end; background: var(--bordeaux); border: 1px solid var(--bordeaux-light); color: var(--cream); }
+.message strong { color: var(--gold); }
+.chat-input { padding: 14px 16px; border-top: 1px solid var(--border-subtle); display: flex; gap: 8px; }
+.chat-input input { flex: 1; padding: 11px 14px; background: var(--bg-base); border: 1px solid var(--border); border-radius: 9px; color: var(--cream); font-size: 0.82rem; font-family: inherit; outline: none; }
+.chat-input input:focus { border-color: var(--gold-dim); }
+.chat-input input::placeholder { color: var(--text-muted); }
+.chat-input button { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: var(--bordeaux); border: 1px solid var(--bordeaux-light); border-radius: 9px; color: var(--gold); cursor: pointer; }
+.chat-input button:hover { background: var(--bordeaux-light); }
+.chat-input button i { width: 16px; height: 16px; }
+.support-sidebar { display: flex; flex-direction: column; gap: 12px; }
+.support-card { background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 16px; }
+.support-card h4 { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--gold-dim); margin-bottom: 10px; }
+.quick-action { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: 7px; cursor: pointer; transition: background 150ms; font-size: 0.8rem; color: var(--cream-dim); }
+.quick-action:hover { background: var(--bg-hover); color: var(--cream); }
+.quick-action i { width: 14px; height: 14px; color: var(--gold); }
+
+/* RESPONSIVE */
+@media (max-width: 1100px) {
+  .studio-container, .support-layout { grid-template-columns: 1fr; }
+  .studio-panel, .support-sidebar { display: none; }
+  .car-catalog-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 768px) {
+  .main { padding-left: 0; padding-top: 64px; }
+  .radial-menu { top: 0; left: 0; right: 0; transform: none; width: 100%; }
+  .radial-menu-inner { flex-direction: row; width: 100%; border-radius: 0; padding: 6px 10px; gap: 3px; justify-content: center; }
+  .menu-logo { margin-bottom: 0; margin-right: 6px; }
+  .menu-divider { width: 1px; height: 20px; margin: 0 3px; }
+  .drag-handle { display: none; }
+  .nav-tooltip { display: none; }
+  .section { padding: 20px 14px; }
+}
+</style>
+</head>
+<body>
+
+<!-- RADIANT FLOATING MENU -->
+<nav class="radial-menu" id="radialMenu">
+  <div class="radial-menu-inner">
+    <div class="drag-handle"><span></span><span></span><span></span></div>
+    <div class="menu-logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: var(--gold)">
+        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+      </svg>
+    </div>
+    <div class="nav-item active" data-section="dashboard"><i data-lucide="layout-dashboard"></i><span class="nav-tooltip">Dashboard</span></div>
+    <div class="nav-item" data-section="blog"><i data-lucide="image"></i><span class="nav-tooltip">Blog Catalogo</span></div>
+    <div class="nav-item" data-section="studio"><i data-lucide="box"></i><span class="nav-tooltip">Studio 3D</span></div>
+    <div class="nav-item" data-section="support"><i data-lucide="message-circle"></i><span class="nav-tooltip">AI Support</span></div>
+    <div class="menu-divider"></div>
+    <div class="nav-item" data-section="settings"><i data-lucide="settings"></i><span class="nav-tooltip">Impostazioni</span></div>
+  </div>
+</nav>
+
+<main class="main">
+
+<!-- DASHBOARD -->
+<section class="section active" id="dashboard">
+  <div class="dashboard-header">
+    <div>
+      <h1>AutoVerse AI</h1>
+      <p>Catalogo completo con ricostruzioni 3D, specifiche tecniche e contenuti cinematografici</p>
+    </div>
+    <div class="status-badge">AI Engine attivo</div>
+  </div>
+  <div class="dashboard-grid">
+    <div class="dash-card">
+      <div class="dash-card-header"><h3>Auto Catalogate</h3><div class="dash-card-icon"><i data-lucide="car"></i></div></div>
+      <div class="dash-card-value">18</div>
+      <div class="dash-card-sub">6 case automobilistiche</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-header"><h3>Illustrazioni 3D</h3><div class="dash-card-icon"><i data-lucide="box"></i></div></div>
+      <div class="dash-card-value">18</div>
+      <div class="dash-card-sub">Wireframe dettagliati per ogni modello</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-header"><h3>Specifiche Tecniche</h3><div class="dash-card-icon"><i data-lucide="gauge"></i></div></div>
+      <div class="dash-card-value">108</div>
+      <div class="dash-card-sub">Dati verificati da fonti ufficiali</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-header"><h3>Case Auto</h3><div class="dash-card-icon"><i data-lucide="building-2"></i></div></div>
+      <div class="dash-card-value">6</div>
+      <div class="dash-card-sub">Ferrari, Lamborghini, Porsche, McLaren, BMW, Mercedes</div>
+    </div>
+  </div>
+</section>
+
+<!-- BLOG CATALOGO -->
+<section class="section" id="blog">
+  <div class="blog-header">
+    <h1>Catalogo Automotive Completo</h1>
+    <p>Tutte le auto catalogate con illustrazioni 3D dettagliate, specifiche tecniche e contenuti multimediali</p>
+  </div>
+  <div class="blog-filters">
+    <button class="filter-chip active" type="button" data-filter="all">Tutte</button>
+    <button class="filter-chip" type="button" data-filter="ferrari">Ferrari</button>
+    <button class="filter-chip" type="button" data-filter="lamborghini">Lamborghini</button>
+    <button class="filter-chip" type="button" data-filter="porsche">Porsche</button>
+    <button class="filter-chip" type="button" data-filter="mclaren">McLaren</button>
+    <button class="filter-chip" type="button" data-filter="bmw">BMW</button>
+    <button class="filter-chip" type="button" data-filter="mercedes">Mercedes</button>
+  </div>
+
+  <!-- FERRARI -->
+  <div class="brand-section" data-brand="ferrari">
+    <div class="brand-section-header">
+      <div class="brand-logo-badge">F</div>
+      <div><h2>Ferrari</h2><span>Maranello, Italia. Fondata nel 1947</span></div>
+    </div>
+    <div class="car-catalog-grid">
+      <div class="car-catalog-card">
+        <div class="car-illustration">
+          <span class="car-type-badge">HYPERCAR</span>
+          <span class="car-badge">2026</span>
+          <svg viewBox="0 0 400 180"><path d="M30 130 Q40 130 48 122 L70 95 Q78 85 90 80 L150 72 Q160 70 170 70 L280 70 Q300 72 310 78 L340 95 Q348 102 355 108 L370 125 Q375 130 380 130"/><path d="M25 132 L385 132"/><circle cx="100" cy="138" r="22"/><circle cx="100" cy="138" r="14"/><circle cx="100" cy="138" r="6"/><circle cx="310" cy="138" r="22"/><circle cx="310" cy="138" r="14"/><circle cx="310" cy="138" r="6"/><path d="M155 74 L170 50 Q175 44 185 42 L250 42 Q258 44 262 50 L275 74"/><path d="M170 50 L170 42 Q172 38 178 37 L248 37 Q254 38 256 42 L256 50"/><path d="M48 120 L75 120 M85 108 L130 108" opacity="0.5"/><path d="M310 78 L360 95 L370 105" opacity="0.5"/><path d="M340 62 L375 62 Q380 60 380 56 L380 52" opacity="0.6"/><rect x="110" y="95" width="45" height="22" rx="3" opacity="0.3"/><rect x="165" y="92" width="35" height="25" rx="3" opacity="0.3"/></svg>
+        </div>
+        <div class="car-catalog-content">
+          <h3>Ferrari F80</h3>
+          <div class="car-subtitle">Hypercar ibrida V6 biturbo, 1.184 CV combinati</div>
+          <p class="car-desc">Erede della LaFerrari. V6 3.0 biturbo da 888 CV abbinato a tre motori elettrici. Aerodinamica derivata dalla F1 con carico di 1.050 kg a 250 km/h. Solo 799 esemplari prodotti.</p>
+          <div class="specs-mini-grid">
+            <div class="spec-mini"><label>Potenza</label><span>1.184 CV</span></div>
+            <div class="spec-mini"><label>Coppia</label><span>850 Nm</span></div>
+            <div class="spec-mini"><label>0-100</label><span>2,15s</span></div>
+            <div class="spec-mini"><label>V.Max</label><span>350 km/h</span></div>
+            <div class="spec-mini"><label>Peso</label><span>1.525 kg</span></div>
+            <div class="spec-mini"><label>Motore</label><span>V6 3.0T</span></div>
+          </div>
+          <div class="car-catalog-footer">
+            <span class="car-price">€3.600.000</span>
+            <span class="car-year">2026</span>
+          </div>
+        </div>
+      </div>
+      <div class="car-catalog-card">
+        <div class="car-illustration">
+          <span class="car-type-badge">SUPERCAR</span>
+          <span class="car-badge">2024</span>
+          <svg viewBox="0 0 400 180"><path d="M35 128 Q45 128 52 120 L75 95 Q82 87 95 82 L155 76 Q165 74 175 74 L270 74 Q290 76 300 82 L335 100 Q342 108 350 115 L368 128 Q372 130 378 130"/><path d="M30 132 L380 132"/><circle cx="105" cy="137" r="21"/><circle cx="105" cy="137" r="13"/><circle cx="105" cy="137" r="5"/><circle cx="305" cy="137" r="21"/><circle cx="305" cy="137" r="13"/><circle cx="305" cy="137" r="5"/><path d="M160 78 L172 55 Q177 48 187 46 L255 46 Q263 48 267 55 L278 78"/><path d="M52 118 L80 118" opacity="0.5"/><path d="M335 100 L365 112" opacity="0.5"/><rect x="120" y="96" width="40" height="20" rx="3" opacity="0.3"/><rect x="168" y="93" width="30" height="24" rx="3" opacity="0.3"/></svg>
+        </div>
+        <div class="car-catalog-content">
+          <h3>Ferrari SF90 Stradale</h3>
+          <div class="car-subtitle">PHEV V8 biturbo 4.0L, trazione integrale</div>
+          <p class="car-desc">Prima Ferrari di serie con motore ibrido plug-in e trazione integrale. V8 da 780 CV affiancato da 3 motori elettrici per un totale di 1.000 CV.</p>
+          <div class="specs-mini-grid">
+            <div class="spec-mini"><label>Potenza</label><span>1.000 CV</span></div>
+            <div class="spec-mini"><label>Coppia</label><span>800 Nm</span></div>
+            <div class="spec-mini"><label>0-100</label><span>2,5s</span></div>
+            <div class="spec-mini"><label>V.Max</label><span>340 km/h</span></div>
+            <div class="spec-mini"><label>Peso</label><span>1.570 kg</span></div>
+            <div class="spec-mini"><label>Motore</label><span>V8 4.0T</span></div>
+          </div>
+          <div class="car-catalog-footer">
+            <span class="car-price">€528.764</span>
+            <span class="car-year">2019-2024</span>
+          </div>
+        </div>
+      </div>
+      <div class="car-catalog-card">
+        <div class="car-illustration">
+          <span class="car-type-badge">BERLINETTA</span>
+          <span class="car-badge">2025</span>
+          <svg viewBox="0 0 400 180"><path d="M40 126 Q50 126 56 118 L78 94 Q85 86 98 82 L160 76 Q170 74 180 74 L265 74 Q280 76 288 82 L320 98 Q328 105 336 112 L358 126 Q363 128 370 128"/><path d="M35 130 L375 130"/><circle cx="108" cy="135" r="20"/><circle cx="108" cy="135" r="12"/><circle cx="108" cy="135" r="5"/><circle cx="298" cy="135" r="20"/><circle cx="298" cy="135" r="12"/><circle cx="298" cy="135" r="5"/><path d="M165 78 L176 56 Q180 49 190 47 L248 47 Q256 49 259 56 L268 78"/><path d="M56 116 L78 116" opacity="0.5"/><path d="M320 96 L355 110" opacity="0.5"/><rect x="125" y="95" width="35" height="18" rx="2" opacity="0.3"/></svg>
+        </div>
+        <div class="car-catalog-content">
+          <h3>Ferrari 296 GTB</h3>
+          <div class="car-subtitle">V6 120° biturbo 3.0L ibrido plug-in</div>
+          <p class="car-desc">Primo V6 Ferrari di serie dal 1973. Motore 120° derivato dalla competizione, abbinato a un motore elettrico da 167 CV. Potenza specifica record di 221 CV/litro.</p>
+          <div class="specs-mini-grid">
+            <div class="spec-mini"><label>Potenza</label><span>830 CV</span></div>
+            <div class="spec-mini"><label>Coppia</label><span>740 Nm</span></div>
+            <div class="spec-mini"><label>0-100</label><span>2,9s</span></div>
+            <div class="spec-mini"><label>V.Max</label><span>330 km/h</span></div>
+            <div class="spec-mini"><label>Peso</label><span>1.470 kg</span></div>
+            <div class="spec-mini"><label>Motore</label><span>V6 3.0T</span></div>
+          </div>
+          <div class="car-catalog-footer">
+            <span class="car-price">€346.950</span>
+            <span class="car-year">2022-2025</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LAMBORGHINI -->
+  <div class="brand-section" data-brand="lamborghini">
+    <div class="brand-section-header">
+      <div class="brand-logo-badge">L</div>
+      <div><h2>Lamborghini</h2><span>Sant'Agata Bolognese, Italia. Fondata nel 1963</span></div>
+    </div>
+    <div class="car-catalog-grid">
+      <div class="car-catalog-card">
+        <div class="car-illustration">
+          <span class="car-type-badge">SUPERCAR</span>
+          <span class="car-badge">2024</span>
+          <svg viewBox="0 0 400 180"><path d="M28 128 Q38 126 44 118 L62 92 Q68 82 80 78 L150 70 Q165 68 180 68 L275 68 Q292 70 302 78 L338 98 Q346 106 354 115 L372 128 Q378 130 385 130"/><path d="M22 132 L388 132"/><circle cx="98" cy="138" r="22"/><circle cx="98" cy="138" r="14"/><circle cx="98" cy="138" r="6"/><circle cx="315" cy="138" r="22"/><circle cx="315" cy="138" r="14"/><circle cx="315" cy="138" r="6"/><path d="M155 72 L168 46 Q172 40 182 38 L258 38 Q268 40 272 46 L282 72"/><path d="M44 116 L65 116" opacity="0.5"/><path d="M338 96 L368 112" opacity="0.5"/><path d="M290 60 L365 60 Q370 57 370 53" opacity="0.6"/><rect x="105" y="92" width="42" height="22" rx="3" opacity="0.3"/></svg>
+        </div>
+        <div class="car-catalog-content">
+          <h3>Lamborghini Revuelto</h3>
+          <div class="car-subtitle">V12 6.5L aspirato + 3 motori elettrici, AWD</div>
+          <p class="car-desc">Successore dell'Aventador. Primo V12 ibrido plug-in Lamborghini con 1.015 CV totali. Cambio DCT a 8 rapporti, una prima per il marchio.</p>
+          <div class="specs-mini-grid">
+            <div class="spec-mini"><label>Potenza</label><span>1.015 CV</span></div>
+            <div class="spec-mini"><label>Coppia</label><span>725 Nm</span></div>
+            <div class="spec-mini"><label>0-100</label><span>2,5s</span></div>
+            <div class="spec-mini"><label>V.Max</label><span>350 km/h</span></div>
+            <div class="spec-mini"><label>Peso</label><span>1.772 kg</span></div>
+            <div class="spec-mini"><label>Motore</label><span>V12 6.5</span></div>
+          </div>
+          <div class="car-catalog-footer">
+            <span class="car-price">€608.358</span>
+            <span class="car-year">2024</span>
+          </div>
+        </div>
+      </div>
+      <div class="car-catalog-card">
+        <div class="car-illustration">
+          <span class="car-type-badge">SUPERCAR</span>
+          <span class="car-badge">2025</span>
+          <svg viewBox="0 0 400 180"><path d="M32 126 Q42 126 48 118 L68 94 Q75 85 88 80 L155 74 Q168 72 180 72 L268 72 Q282 74 292 80 L328 96 Q336 104 344 112 L364 126 Q370 128 376 128"/><path d="M28 130 L380 130"/><circle cx="102" cy="136" r="20"/><circle cx="102" cy="136" r="12"/><circle cx="102" cy="136" r="5"/><circle cx="305" cy="136" r="20"/><circle cx="305" cy="136" r="12"/><circle cx="305" cy="136" r="5"/><path d="M158 76 L170 52 Q174 46 184 44 L252 44 Q260 46 264 52 L274 76"/><path d="M48 116 L70 116" opacity="0.5"/><path d="M328 94 L360 108" opacity="0.5"/><rect x="115" y="92" width="38" height="20" rx="2" opacity="0.3"/></svg>
+        </div>
+        <div class="car-catalog-content">
+          <h3>Lamborghini Temerario</h3>
+          <div class="car-subtitle">V8 4.0L biturbo ibrido, 920 CV</div>
+          <p class="car-desc">Successore della Huracán. Nuovo V8 biturbo 4.0 a 90° con 800 CV (il V8 più potente mai in una Lamborghini) più 3 motori elettrici assiali.</p>
+          <div class="specs-mini-grid">
+            <div class="spec-mini"><label>Potenza</label><span>920 CV</span></div>
+            <div class="spec-mini"><label>Coppia</label><span>730 Nm</span></div>
+            <div class="spec-mini"><label>0-100</label><span>2,7s</span></div>
+            <div class="spec-mini"><label>V.Max</label><span>340 km/h</span></div>
+            <div class="spec-mini"><label>Peso</label><span>1.690 kg</span></div>
+            <div class="spec-mini"><label>Motore</label><span>V8 4.0T</span></div>
+          </div>
+          <div class="car-catalog-footer">
+            <span class="car-price">€340.000</span>
+            <span class="car-year">2025</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PORSCHE -->
+  <div class="brand-section" data-brand="porsche">
+    <div class="brand-section-header">
+      <div class="brand-logo-badge">P</div>
+      <div><h2>Porsche</h2><span>Stoccarda, Germania. Fondata nel 1931</span></div>
+    </div>
+    <div class="car-catalog-grid">
+      <div class="car-catalog-card">
+        <div class="car-illustration">
+          <span class="car-type-badge">TRACK</span>
+          <span class="car-badge">2024</span>
+          <svg viewBox="0 0 400 180"><path d="M42 125 Q52 125 58 117 L75 96 Q82 88 92 84 L145 78 Q158 76 168 76 L265 76 Q278 78 288 84 L318 98 Q326 106 332 112 L352 124 Q358 126 364 126"/><path d="M38 129 L368 129"/><circle cx="108" cy="134" r="19"/><circle cx="108" cy="134" r="12"/><circle cx="108" cy="134" r="5"/><circle cx="295" cy="134" r="19"/><circle cx="295" cy="134" r="12"/><circle cx="295" cy="134" r="5"/><path d="M155 79 L165 58 Q169 52 178 50 L242 50 Q250 52 254 58 L262 79"/><path d="M270 46 L345 46 Q352 44 354 38 L354 32"/><path d="M354 32 L370 32 Q374 34 374 38 L374 44 L354 44" opacity="0.7"/><path d="M58 115 L78 115" opacity="0.5"/></svg>
+        </div>
+        <div class="car-catalog-content">
+          <h3>Porsche 911 GT3 RS (992)</h3>
+          <div class="car-subtitle">Flat-6 4.0L aspirato, 9.000 giri, aero attiva DRS</div>
+          <p class="car-desc">Il massimo della 911 aspirata. Alettone con sistema DRS attivo, 409 kg di carico a 285 km/h. Record Nürburgring: 6:49.328.</p>
+          <div class="specs-mini-grid">
+            <div class="spec-mini"><label>Potenza</label><span>525 CV</span></div>
+            <div class="spec-mini"><label>Coppia</label><span>465 Nm</span></div>
+            <div class="spec-mini"><label>0-100</label><span>3,2s</span></div>
+            <div class="spec-mini"><label>V.Max</label><span>296 km/h</span></div>
+            <div class="spec-mini"><label>Peso</label><span>1.450 kg</span></div>
+            <div class="spec-mini"><label>Motore</label><span>F6 4.0</span></div>
+          </div>
+          <div class="car-catalog-footer">
+            <span class="car-price">€241.300</span>
+            <span class="car-year">2023-2024</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- McLAREN -->
+  <div class="brand-section" data-brand="mclaren">
+    <div class="brand-section-header">
+      <div class="brand-logo-badge">M</div>
+      <div><h2>McLaren</h2><span>Woking, Inghilterra. Fondata nel 1963</span></div>
+    </div>
+    <div class="car-catalog-grid">
+      <div class="car-catalog-card">
+        <div class="car-illustration">
+          <span class="car-type-badge">HYPERCAR</span>
+          <span class="car-badge">2025</span>
+          <svg viewBox="0 0 400 180"><path d="M30 128 Q40 126 46 118 L65 92 Q72 82 84 77 L150 70 Q165 68 180 68 L278 68 Q295 70 305 77 L340 94 Q348 102 356 112 L374 126 Q380 130 386 130"/><path d="M24 132 L390 132"/><circle cx="96" cy="138" r="22"/><circle cx="96" cy="138" r="14"/><circle cx="96" cy="138" r="6"/><circle cx="318" cy="138" r="22"/><circle cx="318" cy="138" r="14"/><circle cx="318" cy="138" r="6"/><path d="M155 72 L168 45 Q172 38 182 36 L258 36 Q268 38 272 45 L282 72"/><path d="M46 116 L68 116" opacity="0.5"/><path d="M340 92 L370 108" opacity="0.5"/><rect x="108" y="90" width="42" height="22" rx="3" opacity="0.3"/></svg>
+        </div>
+        <div class="car-catalog-content">
+          <h3>McLaren W1</h3>
+          <div class="car-subtitle">V8 4.0L biturbo + motore elettrico, 1.275 CV</div>
+          <p class="car-desc">Successore della P1. V8 biturbo 928 CV + elettrico 347 CV. Solo 399 esemplari. Effetto suolo attivo. Il rapporto peso/potenza più estremo mai in una McLaren.</p>
+          <div class="specs-mini-grid">
+            <div class="spec-mini"><label>Potenza</label><span>1.275 CV</span></div>
+            <div class="spec-mini"><label>Coppia</label><span>1.340 Nm</span></div>
+            <div class="spec-mini"><label>0-100</label><span>2,7s</span></div>
+            <div class="spec-mini"><label>V.Max</label><span>350 km/h</span></div>
+            <div class="spec-mini"><label>Peso</label><span>1.399 kg</span></div>
+            <div class="spec-mini"><label>Motore</label><span>V8 4.0T</span></div>
+          </div>
+          <div class="car-catalog-footer">
+            <span class="car-price">€2.100.000</span>
+            <span class="car-year">2025</span>
+          </div>
+        </div>
+      </div>
+      <div class="car-catalog-card">
+        <div class="car-illustration">
+          <span class="car-type-badge">SUPERCAR</span>
+          <span class="car-badge">2025</span>
+          <svg viewBox="0 0 400 180"><path d="M36 126 Q46 126 52 118 L70 95 Q77 86 89 82 L152 76 Q165 74 176 74 L268 74 Q282 76 290 82 L322 97 Q330 105 336 112 L356 126 Q362 128 368 128"/><path d="M32 130 L372 130"/><circle cx="104" cy="136" r="20"/><circle cx="104" cy="136" r="12"/><circle cx="104" cy="136" r="5"/><circle cx="302" cy="136" r="20"/><circle cx="302" cy="136" r="12"/><circle cx="302" cy="136" r="5"/><path d="M160 77 L172 54 Q176 48 185 46 L248 46 Q256 48 260 54 L270 77"/><path d="M52 116 L72 116" opacity="0.5"/><path d="M322 95 L352 108" opacity="0.5"/></svg>
+        </div>
+        <div class="car-catalog-content">
+          <h3>McLaren 750S</h3>
+          <div class="car-subtitle">V8 4.0L biturbo, telaio MonoCell II in carbonio</div>
+          <p class="car-desc">Evoluzione della 720S con 30 CV in più e 30 kg in meno. Rapporto peso/potenza migliore della categoria: 1,98 kg/CV.</p>
+          <div class="specs-mini-grid">
+            <div class="spec-mini"><label>Potenza</label><span>750 CV</span></div>
+            <div class="spec-mini"><label>Coppia</label><span>800 Nm</span></div>
+            <div class="spec-mini"><label>0-100</label><span>2,8s</span></div>
+            <div class="spec-mini"><label>V.Max</label><span>332 km/h</span></div>
+            <div class="spec-mini"><label>Peso</label><span>1.389 kg</span></div>
+            <div class="spec-mini"><label>Motore</label><span>V8 4.0T</span></div>
+          </div>
+          <div class="car-catalog-footer">
+            <span class="car-price">€318.085</span>
+            <span class="car-year">2024-2025</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BMW -->
+  <div class="brand-section" data-brand="bmw">
+    <div class="brand-section-header">
+      <div class="brand-logo-badge">B</div>
+      <div><h2>BMW M</h2><span>Monaco di Baviera, Germania. Divisione M fondata nel 1972</span></div>
+    </div>
+    <div class="car-catalog-grid">
+      <div class="car-catalog-card">
+        <div class="car-illustration">
+          <span class="car-type-badge">TRACK</span>
+          <span class="car-badge">2023</span>
+          <svg viewBox="0 0 400 180"><path d="M40 124 Q50 124 56 117 L72 97 Q78 89 90 85 L150 79 Q162 77 172 77 L262 77 Q275 79 284 85 L315 98 Q322 105 328 112 L350 124 Q356 126 362 126"/><path d="M36 128 L366 128"/><circle cx="106" cy="133" r="18"/><circle cx="106" cy="133" r="11"/><circle cx="106" cy="133" r="4"/><circle cx="296" cy="133" r="18"/><circle cx="296" cy="133" r="11"/><circle cx="296" cy="133" r="4"/><path d="M158 80 L168 60 Q172 54 180 52 L240 52 Q248 54 252 60 L260 80"/><path d="M56 115 L74 115" opacity="0.5"/><path d="M315 96 L346 108" opacity="0.5"/></svg>
+        </div>
+        <div class="car-catalog-content">
+          <h3>BMW M4 CSL</h3>
+          <div class="car-subtitle">6 cilindri in linea 3.0L biturbo, 550 CV</div>
+          <p class="car-desc">Competition Sport Lightweight. Solo 1.000 esemplari. Riduzione peso di 100 kg con sedili e cofano in carbonio. Record Nürburgring per BMW stradale: 7:20.207.</p>
+          <div class="specs-mini-grid">
+            <div class="spec-mini"><label>Potenza</label><span>550 CV</span></div>
+            <div class="spec-mini"><label>Coppia</label><span>650 Nm</span></div>
+            <div class="spec-mini"><label>0-100</label><span>3,7s</span></div>
+            <div class="spec-mini"><label>V.Max</label><span>307 km/h</span></div>
+            <div class="spec-mini"><label>Peso</label><span>1.625 kg</span></div>
+            <div class="spec-mini"><label>Motore</label><span>L6 3.0T</span></div>
+          </div>
+          <div class="car-catalog-footer">
+            <span class="car-price">€181.000</span>
+            <span class="car-year">2022-2023</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MERCEDES -->
+  <div class="brand-section" data-brand="mercedes">
+    <div class="brand-section-header">
+      <div class="brand-logo-badge">A</div>
+      <div><h2>Mercedes-AMG</h2><span>Affalterbach, Germania. AMG fondata nel 1967</span></div>
+    </div>
+    <div class="car-catalog-grid">
+      <div class="car-catalog-card">
+        <div class="car-illustration">
+          <span class="car-type-badge">HYPERCAR</span>
+          <span class="car-badge">2023</span>
+          <svg viewBox="0 0 400 180"><path d="M28 128 Q38 126 44 118 L62 90 Q68 80 80 75 L148 68 Q165 65 180 65 L280 65 Q298 68 308 75 L342 94 Q350 102 358 112 L376 126 Q382 130 388 130"/><path d="M22 132 L392 132"/><circle cx="95" cy="138" r="22"/><circle cx="95" cy="138" r="14"/><circle cx="95" cy="138" r="6"/><circle cx="320" cy="138" r="22"/><circle cx="320" cy="138" r="14"/><circle cx="320" cy="138" r="6"/><path d="M152 68 L165 42 Q170 35 180 33 L260 33 Q270 35 274 42 L285 68"/><path d="M44 115 L65 115" opacity="0.5"/><path d="M342 92 L372 108" opacity="0.5"/><rect x="108" y="88" width="44" height="24" rx="3" opacity="0.3"/></svg>
+        </div>
+        <div class="car-catalog-content">
+          <h3>Mercedes-AMG ONE</h3>
+          <div class="car-subtitle">V6 1.6L turbo F1 + 4 motori elettrici, 1.063 CV</div>
+          <p class="car-desc">Motore derivato dalla F1 W07 di Hamilton. V6 1.6 turbo a 11.000 giri con MGU-K e MGU-H. Record assoluto Nürburgring: 6:35.183. Solo 275 esemplari.</p>
+          <div class="specs-mini-grid">
+            <div class="spec-mini"><label>Potenza</label><span>1.063 CV</span></div>
+            <div class="spec-mini"><label>Coppia</label><span>740 Nm</span></div>
+            <div class="spec-mini"><label>0-100</label><span>2,9s</span></div>
+            <div class="spec-mini"><label>V.Max</label><span>352 km/h</span></div>
+            <div class="spec-mini"><label>Peso</label><span>1.695 kg</span></div>
+            <div class="spec-mini"><label>Motore</label><span>V6 1.6T</span></div>
+          </div>
+          <div class="car-catalog-footer">
+            <span class="car-price">€2.750.000</span>
+            <span class="car-year">2022-2023</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- 3D STUDIO -->
+<section class="section" id="studio">
+  <div class="studio-container">
+    <div class="studio-viewport">
+      <div class="viewport-info">
+        <span class="highlight">Studio 3D</span><br>Poligoni: 847.293<br>Textures: 4K PBR<br>FPS: 60
+      </div>
+      <div class="viewport-3d">
+        <div class="car-3d-container" id="car3d">
+          <div class="car-wireframe">
+            <svg viewBox="0 0 500 300">
+              <path d="M50 200 Q70 200 80 190 L120 140 Q130 128 150 125 L350 125 Q370 128 380 140 L420 190 Q430 200 450 200"/>
+              <path d="M40 200 L460 200"/>
+              <circle cx="130" cy="210" r="30"/><circle cx="130" cy="210" r="20"/>
+              <circle cx="370" cy="210" r="30"/><circle cx="370" cy="210" r="20"/>
+              <path d="M155 130 L175 95 Q180 88 195 85 L310 85 Q320 88 325 95 L345 130"/>
+              <path d="M80 180 L150 180"/><path d="M350 180 L420 180"/>
+              <line x1="250" y1="125" x2="250" y2="85" stroke-dasharray="3 5"/>
+              <rect x="160" y="155" width="40" height="15" rx="3" opacity="0.4"/>
+              <rect x="210" y="150" width="30" height="25" rx="3" opacity="0.4"/>
+              <path d="M175 95 L175 80 Q180 72 195 70 L310 70 Q320 72 325 80 L325 95"/>
+              <path d="M380 120 L440 120 Q445 118 445 115 L445 108"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div class="viewport-controls">
+        <button class="viewport-btn active" id="rotateBtn" type="button"><i data-lucide="rotate-3d"></i></button>
+        <button class="viewport-btn" type="button"><i data-lucide="zoom-in"></i></button>
+        <button class="viewport-btn" type="button"><i data-lucide="move"></i></button>
+        <button class="viewport-btn" type="button"><i data-lucide="grid-3x3"></i></button>
+        <button class="viewport-btn" type="button"><i data-lucide="camera"></i></button>
+      </div>
+    </div>
+    <div class="studio-panel">
+      <div class="panel-section">
+        <h3>Modello Attivo</h3>
+        <div class="model-option selected"><span class="model-option-name">Ferrari F80</span><span class="model-option-year">2026</span></div>
+        <div class="model-option"><span class="model-option-name">Lamborghini Revuelto</span><span class="model-option-year">2024</span></div>
+        <div class="model-option"><span class="model-option-name">McLaren W1</span><span class="model-option-year">2025</span></div>
+        <div class="model-option"><span class="model-option-name">Porsche 911 GT3 RS</span><span class="model-option-year">2024</span></div>
+        <div class="model-option"><span class="model-option-name">Mercedes-AMG ONE</span><span class="model-option-year">2023</span></div>
+      </div>
+      <div class="panel-section">
+        <h3>Specifiche: Ferrari F80</h3>
+        <div class="specs-grid">
+          <div class="spec-item"><label>Potenza</label><span>1.184 CV</span></div>
+          <div class="spec-item"><label>Coppia</label><span>850 Nm</span></div>
+          <div class="spec-item"><label>0-100</label><span>2,15s</span></div>
+          <div class="spec-item"><label>V.Max</label><span>350 km/h</span></div>
+          <div class="spec-item"><label>Peso</label><span>1.525 kg</span></div>
+          <div class="spec-item"><label>Motore</label><span>V6 3.0T</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- AI SUPPORT -->
+<section class="section" id="support">
+  <div class="support-layout">
+    <div class="chat-container">
+      <div class="chat-header">
+        <div class="chat-avatar"><i data-lucide="bot"></i></div>
+        <div class="chat-header-info"><h3>AutoVerse AI Assistant</h3><p>Supporto tecnico automotive 24/7</p></div>
+      </div>
+      <div class="chat-messages" id="chatMessages">
+        <div class="message ai">Ciao! Sono l'assistente tecnico di AutoVerse. Posso aiutarti con qualsiasi domanda su auto, motori, manutenzione, tuning, specifiche tecniche o ricostruzioni 3D. Cosa ti serve?</div>
+        <div class="message user">Qual è la differenza tra la Ferrari F80 e la McLaren W1?</div>
+        <div class="message ai"><strong>Ferrari F80</strong> vs <strong>McLaren W1</strong>: entrambe hypercar ibride, filosofie diverse.<br><br>La F80 usa un V6 3.0 biturbo (888 CV) con 3 motori elettrici. Totale: 1.184 CV, peso 1.525 kg. Focus sull'aerodinamica F1 (1.050 kg di carico).<br><br>La W1 tiene il V8 4.0 biturbo (928 CV) con un singolo motore elettrico da 347 CV. Totale: 1.275 CV, peso 1.399 kg. Approccio più leggero con effetto suolo attivo.<br><br>F80 punta sull'aero e tecnologia F1, W1 sul rapporto peso/potenza e leggerezza strutturale.</div>
+      </div>
+      <div class="chat-input">
+        <input type="text" placeholder="Scrivi una domanda tecnica..." id="chatInput">
+        <button type="button" id="chatSend"><i data-lucide="send"></i></button>
+      </div>
+    </div>
+    <div class="support-sidebar">
+      <div class="support-card">
+        <h4>Azioni Rapide</h4>
+        <div class="quick-action"><i data-lucide="search"></i> Cerca nel catalogo</div>
+        <div class="quick-action"><i data-lucide="bar-chart-3"></i> Confronta modelli</div>
+        <div class="quick-action"><i data-lucide="calculator"></i> Calcolo prestazioni</div>
+        <div class="quick-action"><i data-lucide="file-text"></i> Scheda tecnica PDF</div>
+      </div>
+      <div class="support-card">
+        <h4>Database</h4>
+        <div class="quick-action"><i data-lucide="car"></i> 18 auto catalogate</div>
+        <div class="quick-action"><i data-lucide="building-2"></i> 6 case automobilistiche</div>
+        <div class="quick-action"><i data-lucide="gauge"></i> 108 specifiche tecniche</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SETTINGS -->
+<section class="section" id="settings">
+  <div class="dashboard-header"><div><h1>Impostazioni</h1><p>Configurazione piattaforma</p></div></div>
+  <div style="max-width:560px;background:var(--bg-surface);border:1px solid var(--border-subtle);border-radius:14px;padding:24px;">
+    <h3 style="font-size:0.72rem;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:var(--gold-dim);margin-bottom:14px;">Generale</h3>
+    <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-subtle);font-size:0.84rem;"><span style="color:var(--cream-dim)">Lingua</span><span style="color:var(--gold)">Italiano</span></div>
+    <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-subtle);font-size:0.84rem;"><span style="color:var(--cream-dim)">Qualità 3D</span><span style="color:var(--gold)">Ultra (4K PBR)</span></div>
+    <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-subtle);font-size:0.84rem;"><span style="color:var(--cream-dim)">Aggiornamento blog</span><span style="color:var(--gold)">Tempo reale</span></div>
+    <div style="display:flex;justify-content:space-between;padding:10px 0;font-size:0.84rem;"><span style="color:var(--cream-dim)">AI Engine</span><span style="color:var(--gold)">AutoVerse GPT-4.5</span></div>
+  </div>
+</section>
+
+</main>
+
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+lucide.createIcons();
+
+// Draggable menu
+const menu = document.getElementById('radialMenu');
+let isDragging = false, startY = 0, startTop = 0;
+menu.addEventListener('pointerdown', (e) => {
+  if (e.target.closest('.nav-item')) return;
+  isDragging = true; menu.classList.add('dragging');
+  startY = e.clientY;
+  const rect = menu.getBoundingClientRect(); startTop = rect.top;
+  menu.style.transform = 'none'; menu.style.top = startTop + 'px';
+  menu.setPointerCapture(e.pointerId); e.preventDefault();
+});
+document.addEventListener('pointermove', (e) => {
+  if (!isDragging) return;
+  let newTop = startTop + (e.clientY - startY);
+  newTop = Math.max(8, Math.min(window.innerHeight - menu.offsetHeight - 8, newTop));
+  menu.style.top = newTop + 'px';
+});
+document.addEventListener('pointerup', () => { isDragging = false; menu.classList.remove('dragging'); });
+
+// Navigation
+const navItems = document.querySelectorAll('.nav-item[data-section]');
+const sections = document.querySelectorAll('.section');
+navItems.forEach(item => {
+  item.addEventListener('click', () => {
+    const target = item.dataset.section;
+    navItems.forEach(n => n.classList.remove('active'));
+    item.classList.add('active');
+    sections.forEach(s => { s.classList.remove('active'); if (s.id === target) s.classList.add('active'); });
+  });
+});
+
+// Blog filters
+document.querySelectorAll('.filter-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    const filter = chip.dataset.filter;
+    document.querySelectorAll('.brand-section').forEach(section => {
+      if (filter === 'all' || section.dataset.brand === filter) {
+        section.style.display = 'block';
+      } else {
+        section.style.display = 'none';
+      }
+    });
+  });
+});
+
+// 3D rotation
+const rotateBtn = document.getElementById('rotateBtn');
+const car3d = document.getElementById('car3d');
+rotateBtn.addEventListener('click', () => { car3d.classList.toggle('paused'); rotateBtn.classList.toggle('active'); });
+
+// Model selection
+document.querySelectorAll('.model-option').forEach(opt => {
+  opt.addEventListener('click', () => { document.querySelectorAll('.model-option').forEach(o => o.classList.remove('selected')); opt.classList.add('selected'); });
+});
+
+// Chat
+const chatInput = document.getElementById('chatInput');
+const chatSend = document.getElementById('chatSend');
+const chatMessages = document.getElementById('chatMessages');
+function sendMessage() {
+  const text = chatInput.value.trim(); if (!text) return;
+  const userMsg = document.createElement('div'); userMsg.className = 'message user'; userMsg.textContent = text;
+  chatMessages.appendChild(userMsg); chatInput.value = ''; chatMessages.scrollTop = chatMessages.scrollHeight;
+  setTimeout(() => {
+    const aiMsg = document.createElement('div'); aiMsg.className = 'message ai';
+    aiMsg.innerHTML = 'Analizzo la tua richiesta nel database AutoVerse con 18 modelli catalogati e oltre 108 specifiche tecniche verificate...';
+    chatMessages.appendChild(aiMsg); chatMessages.scrollTop = chatMessages.scrollHeight;
+  }, 800);
+}
+chatSend.addEventListener('click', sendMessage);
+chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendMessage(); });
+</script>
+</body>
+</html>
